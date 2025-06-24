@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Tokens Demo - Jóvenes a Programar</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-section">
+                <div class="logo">JP</div>
+                <div class="brand-name">JWT Tokens Demo</div>
+            </div>
+            <div class="auth-status">
+                <div class="status-indicator logged-out" id="authStatus">
+                    🔒 No autenticado
+                </div>
+                <button class="btn btn-danger hidden" id="logoutBtn" onclick="logout()">
+                    Cerrar Sesión
+                </button>
+            </div>
+        </header>
+
+        <!-- Sección de Login -->
+        <div class="section" id="loginSection">
+            <h2>🔐 Autenticación con JWT</h2>
+            <div class="login-form">
+                <div class="form-container">
+                    <h3>Iniciar Sesión</h3>
+                    <p style="margin-bottom: 1rem; color: #4a5568;">
+                        Usa estas credenciales de prueba:
+                        <br><strong>Usuario:</strong> admin@jovenes.com
+                        <br><strong>Contraseña:</strong> 123456
+                    </p>
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="email" id="email" value="admin@jovenes.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Contraseña:</label>
+                            <input type="password" id="password" value="123456" required>
+                        </div>
+                        <button type="submit" class="btn">Iniciar Sesión</button>
+                    </form>
+                </div>
+                
+                <div class="form-container">
+                    <h3>Código de Login</h3>
+                    <div class="code-example">
+<span class="code-comment">// 1. Llamada a la API de autenticación</span>
+<span class="code-highlight">fetch('/login')</span>, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    email: email,
+    password: password
+  })
+})
+.then(response => response.json())
+.then(data => {
+  if (data.success) {
+    <span class="code-comment">// 2. Guardar token en localStorage</span>
+    <span class="code-highlight">localStorage.setItem('token', data.token)</span>;
+    
+    <span class="code-comment">// 3. Actualizar interfaz</span>
+    updateAuthStatus(true);
+  }
+});
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Token -->
+        <div class="section hidden" id="tokenSection">
+            <h2>🎫 Token JWT Generado</h2>
+            <p>Aquí puedes ver el token JWT que se generó al iniciar sesión:</p>
+            
+            <div class="token-display" id="tokenDisplay">
+                <!-- El token se mostrará aquí -->
+            </div>
+            
+            <div class="token-parts">
+                <div class="token-part header">
+                    <h4>Header</h4>
+                    <p>Tipo de token y algoritmo</p>
+                    <div id="headerDecoded"></div>
+                </div>
+                <div class="token-part payload">
+                    <h4>Payload</h4>
+                    <p>Datos del usuario</p>
+                    <div id="payloadDecoded"></div>
+                </div>
+                <div class="token-part signature">
+                    <h4>Signature</h4>
+                    <p>Verificación de integridad</p>
+                    <small>Encriptado con clave secreta</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Pruebas -->
+        <div class="section hidden" id="testSection">
+            <h2>🧪 Pruebas con Token JWT</h2>
+            <div class="test-area">
+                <div class="test-card">
+                    <h3>Petición Autenticada</h3>
+                    <p>Esta petición incluye el token JWT en el header Authorization:</p>
+                    <div class="code-example">
+<span class="code-comment">// Petición con token JWT</span>
+fetch('/profile', {
+  method: 'GET',
+  headers: {
+    <span class="code-highlight">'Authorization': 'Bearer ' + token</span>,
+    'Content-Type': 'application/json'
+  }
+})
+.then(response => response.json())
+.then(data => {
+  console.log('Datos del perfil:', data);
+});
+                    </div>
+                    <button class="btn" onclick="fetchUserProfile()">
+                        Obtener Perfil de Usuario
+                    </button>
+                    <div class="api-response" id="profileResponse"></div>
+                </div>
+                
+                <div class="test-card">
+                    <h3>Petición sin Token</h3>
+                    <p>Esta petición NO incluye el token JWT:</p>
+                    <div class="code-example">
+<span class="code-comment">// Petición SIN token</span>
+fetch('/admin-data', {
+  method: 'GET',
+  headers: {
+    'Content-Type': 'application/json'
+    <span class="code-comment">// Sin Authorization header</span>
+  }
+})
+.then(response => response.json());
+                    </div>
+                    <button class="btn" onclick="fetchAdminData()">
+                        Acceder a Datos Admin (Fallará)
+                    </button>
+                    <div class="api-response" id="adminResponse"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Código Completo -->
+        <div class="section">
+            <h2>📋 Código Completo Explicado</h2>
+            <div class="code-example">
+<span class="code-comment">// PASO 1: Función de login completa</span>
+async function login(email, password) {
+  try {
+    <span class="code-comment">// Llamada a API de autenticación</span>
+    const response = await <span class="code-highlight">fetch('/login')</span>, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      <span class="code-comment">// Guardar token en localStorage</span>
+      <span class="code-highlight">localStorage.setItem('token', data.token)</span>;
+      
+      return data.token;
+    } else {
+      throw new Error(data.message);
+    }
+  } catch (error) {
+    console.error('Error en login:', error);
+    throw error;
+  }
+}
+
+<span class="code-comment">// PASO 2: Función para hacer peticiones autenticadas</span>
+async function authenticatedFetch(url, options = {}) {
+  const token = localStorage.getItem('token');
+  
+  const authOptions = {
+    ...options,
+    headers: {
+      ...options.headers,
+      <span class="code-highlight">'Authorization': `Bearer ${token}`</span>
+    }
+  };
+  
+  return fetch(url, authOptions);
+}
+
+<span class="code-comment">// PASO 3: Verificar si el usuario está autenticado</span>
+function isAuthenticated() {
+  const token = localStorage.getItem('token');
+  if (!token) return false;
+  
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
+}
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        <span id="notificationText"></span>
+    </div>
+
+    <script src="/js/script.js"></script>
+</body>
+</html>
